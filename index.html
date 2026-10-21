@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7f2e8">
+<title>Verbesserungswürfel</title>
+<meta name="description" content="24 kleine Tagesmissionen für Gesundheit, Altruismus, Bildung und Umwelt.">
+<style>
+:root{
+  --ink:#1f2a2a;
+  --muted:#6f7774;
+  --paper:#fffdf8;
+  --bg:#f7f2e8;
+  --accent:#376a60;
+  --accent2:#d7a84d;
+  --shadow:0 20px 60px rgba(31,42,42,.14);
+  --radius:28px;
+}
+*{box-sizing:border-box}
+html{min-height:100%;background:var(--bg)}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--ink);
+  font-family:ui-rounded,"SF Pro Rounded","Avenir Next",Avenir,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at 15% 10%,rgba(255,255,255,.95),transparent 32rem),
+    radial-gradient(circle at 90% 90%,rgba(55,106,96,.10),transparent 34rem),
+    var(--bg);
+  transition:background .6s ease;
+}
+body[data-theme="gesundheit"]{--accent:#2f7d68;--accent2:#d1a84b;--bg:#eef7f1}
+body[data-theme="altruismus"]{--accent:#a24e63;--accent2:#d99a55;--bg:#fbf0f2}
+body[data-theme="bildung"]{--accent:#4967a6;--accent2:#d2a23f;--bg:#eff3fb}
+body[data-theme="umwelt"]{--accent:#58773c;--accent2:#bb8a45;--bg:#f1f5e8}
+button{font:inherit}
+.app{width:min(980px,100%);margin:0 auto;padding:28px 20px 42px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.01em}
+.brandmark{
+  width:42px;height:42px;border-radius:14px;display:grid;place-items:center;
+  background:var(--paper);box-shadow:0 8px 24px rgba(31,42,42,.10);font-size:24px
+}
+.sound{
+  border:0;background:rgba(255,255,255,.72);color:var(--ink);padding:10px 14px;border-radius:999px;
+  cursor:pointer;box-shadow:0 6px 20px rgba(31,42,42,.08);font-weight:700
+}
+.hero{text-align:center;padding:12px 0 20px}
+.kicker{text-transform:uppercase;letter-spacing:.16em;font-size:.72rem;font-weight:900;color:var(--accent)}
+h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;letter-spacing:-.055em}
+.lead{max-width:620px;margin:0 auto;color:var(--muted);font-size:clamp(1rem,2vw,1.17rem);line-height:1.55}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin:22px 0 6px}
+.pill{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.68);border:1px solid rgba(31,42,42,.08);border-radius:999px;padding:7px 11px;font-size:.84rem;font-weight:750}
+.dot{width:9px;height:9px;border-radius:50%}
+.dot.g{background:#2f7d68}.dot.a{background:#a24e63}.dot.b{background:#4967a6}.dot.u{background:#58773c}
+
+.stage{
+  position:relative;overflow:hidden;background:rgba(255,253,248,.84);border:1px solid rgba(255,255,255,.78);
+  border-radius:var(--radius);box-shadow:var(--shadow);padding:clamp(24px,5vw,46px);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)
+}
+.stage:before,.stage:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.stage:before{width:240px;height:240px;right:-110px;top:-130px;background:color-mix(in srgb,var(--accent) 13%,transparent)}
+.stage:after{width:180px;height:180px;left:-100px;bottom:-105px;background:color-mix(in srgb,var(--accent2) 16%,transparent)}
+.grid{display:grid;grid-template-columns:minmax(220px,.82fr) minmax(0,1.25fr);align-items:center;gap:clamp(26px,5vw,64px)}
+.dice-zone{text-align:center;position:relative;z-index:2}
+.scene{width:154px;height:154px;perspective:700px;margin:8px auto 32px}
+.cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:rotateX(-18deg) rotateY(28deg);transition:transform .75s cubic-bezier(.2,.8,.2,1)}
+.cube.rolling{animation:tumble 1.25s cubic-bezier(.25,.8,.25,1)}
+@keyframes tumble{
+  0%{transform:rotateX(-18deg) rotateY(28deg) rotateZ(0)}
+  22%{transform:rotateX(205deg) rotateY(140deg) rotateZ(45deg) translateY(-8px)}
+  50%{transform:rotateX(465deg) rotateY(330deg) rotateZ(110deg) translateY(4px)}
+  78%{transform:rotateX(690deg) rotateY(540deg) rotateZ(175deg) translateY(-5px)}
+  100%{transform:rotateX(720deg) rotateY(720deg) rotateZ(180deg)}
+}
+.face{
+  position:absolute;width:154px;height:154px;border-radius:30px;
+  background:linear-gradient(145deg,#fffefb,#eee8dc);
+  border:1px solid rgba(31,42,42,.09);
+  box-shadow:inset 0 1px 0 #fff,0 18px 28px rgba(31,42,42,.12);
+  display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:24px
+}
+.front{transform:rotateY(0) translateZ(77px)}
+.back{transform:rotateY(180deg) translateZ(77px)}
+.right{transform:rotateY(90deg) translateZ(77px)}
+.left{transform:rotateY(-90deg) translateZ(77px)}
+.top{transform:rotateX(90deg) translateZ(77px)}
+.bottom{transform:rotateX(-90deg) translateZ(77px)}
+.pip{width:19px;height:19px;border-radius:50%;background:var(--ink);align-self:center;justify-self:center;box-shadow:inset 0 2px 2px rgba(0,0,0,.22)}
+.p1{grid-area:2/2}.p2{grid-area:1/1}.p3{grid-area:3/3}.p4{grid-area:1/3}.p5{grid-area:3/1}.p6{grid-area:2/1}.p7{grid-area:2/3}
+.roll{
+  width:min(100%,240px);border:0;border-radius:18px;padding:16px 20px;background:var(--ink);color:#fff;
+  font-weight:900;letter-spacing:.01em;cursor:pointer;box-shadow:0 12px 30px rgba(31,42,42,.22);
+  transition:transform .16s ease,box-shadow .16s ease,background .4s ease
+}
+.roll:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(31,42,42,.25)}
+.roll:active{transform:translateY(1px)}
+.roll:disabled{opacity:.65;cursor:default;transform:none}
+.hint{font-size:.78rem;color:var(--muted);margin-top:11px}
+
+.result{position:relative;z-index:2;min-height:340px;display:flex;flex-direction:column;justify-content:center}
+.placeholder{padding:26px 0}
+.eyebrow{font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);margin-bottom:11px}
+.placeholder h2,.mission h2{font-size:clamp(1.65rem,3.3vw,2.7rem);line-height:1.08;letter-spacing:-.035em;margin:0 0 14px}
+.placeholder p{color:var(--muted);line-height:1.55;margin:0;max-width:560px}
+.mission{display:none}
+.mission.show{display:block;animation:reveal .68s cubic-bezier(.2,.8,.2,1)}
+@keyframes reveal{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+.badge{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 11px;background:color-mix(in srgb,var(--accent) 11%,white);color:var(--accent);font-weight:900;font-size:.82rem;margin-bottom:15px}
+.number{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:white;font-size:.72rem}
+.mission p{font-size:1rem;line-height:1.55;color:var(--muted);margin:0 0 20px}
+.examples-title{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;font-weight:900;color:var(--muted);margin-bottom:10px}
+.examples{display:flex;flex-wrap:wrap;gap:9px}
+.example{background:white;border:1px solid rgba(31,42,42,.08);border-radius:14px;padding:9px 11px;font-size:.88rem;line-height:1.3;box-shadow:0 4px 14px rgba(31,42,42,.05)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.done,.again{border:0;border-radius:15px;padding:12px 15px;font-weight:850;cursor:pointer}
+.done{background:var(--accent);color:#fff}.again{background:#fff;color:var(--ink);border:1px solid rgba(31,42,42,.1)}
+.done:hover,.again:hover{transform:translateY(-1px)}
+
+.footer{display:flex;justify-content:center;text-align:center;margin-top:18px;color:var(--muted);font-size:.8rem}
+.spark{position:fixed;width:10px;height:16px;border-radius:3px;z-index:20;pointer-events:none;animation:confetti 1.5s ease-out forwards}
+@keyframes confetti{0%{transform:translateY(-8vh) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(760deg);opacity:0}}
+
+@media(max-width:720px){
+  .app{padding:18px 14px 34px}
+  .topbar{margin-bottom:5px}
+  .brandmark{width:38px;height:38px}
+  .hero{padding-top:8px}
+  .grid{grid-template-columns:1fr;gap:14px}
+  .stage{padding:24px 18px}
+  .scene{width:128px;height:128px;margin:4px auto 24px}
+  .face{width:128px;height:128px;border-radius:25px;padding:20px}
+  .front{transform:rotateY(0) translateZ(64px)}.back{transform:rotateY(180deg) translateZ(64px)}
+  .right{transform:rotateY(90deg) translateZ(64px)}.left{transform:rotateY(-90deg) translateZ(64px)}
+  .top{transform:rotateX(90deg) translateZ(64px)}.bottom{transform:rotateX(-90deg) translateZ(64px)}
+  .pip{width:16px;height:16px}
+  .result{min-height:315px;text-align:left}
+  .dice-zone{padding-top:4px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{scroll-behavior:auto!important}
+  .cube.rolling{animation:none}
+  .mission.show{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><div class="brandmark" aria-hidden="true">◆</div><span>Verbesserungswürfel</span></div>
+    <button class="sound" id="soundBtn" type="button" aria-pressed="true">Ton an</button>
+  </div>
+
+  <header class="hero">
+    <div class="kicker">Eine kleine Mission für heute</div>
+    <h1>Würfeln. Machen.<br>Ein bisschen besser.</h1>
+    <p class="lead">24 positive Tagesmissionen für Gesundheit, Altruismus, Bildung und Umwelt – konkret, machbar und für Kinder wie Erwachsene.</p>
+    <div class="legend" aria-label="Vier Bereiche">
+      <span class="pill"><span class="dot g"></span>Gesundheit</span>
+      <span class="pill"><span class="dot a"></span>Altruismus</span>
+      <span class="pill"><span class="dot b"></span>Bildung</span>
+      <span class="pill"><span class="dot u"></span>Umwelt</span>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="grid">
+      <section class="dice-zone" aria-label="Würfel">
+        <div class="scene">
+          <div class="cube" id="cube" aria-hidden="true">
+            <div class="face front"><span class="pip p1"></span></div>
+            <div class="face back"><span class="pip p2"></span><span class="pip p4"></span><span class="pip p6"></span><span class="pip p7"></span><span class="pip p5"></span><span class="pip p3"></span></div>
+            <div class="face right"><span class="pip p2"></span><span class="pip p1"></span><span class="pip p3"></span></div>
+            <div class="face left"><span class="pip p2"></span><span class="pip p4"></span><span class="pip p5"></span><span class="pip p3"></span></div>
+            <div class="face top"><span class="pip p2"></span><span class="pip p3"></span></div>
+            <div class="face bottom"><span class="pip p2"></span><span class="pip p4"></span><span class="pip p1"></span><span class="pip p5"></span><span class="pip p3"></span></div>
+          </div>
+        </div>
+        <button class="roll" id="rollBtn" type="button">Mission würfeln</button>
+        <div class="hint">Jede der 24 Missionen hat die gleiche Chance.</div>
+      </section>
+
+      <section class="result" aria-live="polite">
+        <div class="placeholder" id="placeholder">
+          <div class="eyebrow">Bereit?</div>
+          <h2>Der Würfel entscheidet.</h2>
+          <p>Ein Klick wählt zufällig eine der 24 Missionen. Die Würfelzahl zeigt die Aufgabe innerhalb ihres Bereichs.</p>
+        </div>
+        <article class="mission" id="mission">
+          <div class="badge"><span id="catIcon">●</span><span id="catName"></span><span class="number" id="missionNumber"></span></div>
+          <h2 id="missionTitle"></h2>
+          <p id="missionText"></p>
+          <div class="examples-title">Konkrete Ideen</div>
+          <div class="examples" id="examples"></div>
+          <div class="actions">
+            <button class="done" id="doneBtn" type="button">Geschafft</button>
+            <button class="again" id="againBtn" type="button">Noch einmal würfeln</button>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div class="footer">24 Missionen · 4 Bereiche · 1 kleiner Schritt</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var missions = [
+    {c:"Gesundheit",k:"gesundheit",i:"♥",t:"30 Minuten draußen bewegen",d:"Gehen, rennen, spielen oder Rad fahren – Hauptsache, du bist draußen in Bewegung.",e:["Eine neue Runde spazieren","Mit Ball oder Fahrrad los","Auf dem Spielplatz aktiv sein"]},
+    {c:"Gesundheit",k:"gesundheit",i:"♥",t:"Eine neue Bewegung ausprobieren",d:"Teste heute eine Bewegung, die du noch nicht oder noch nicht gut kannst.",e:["Auf einer Linie balancieren","Seilspringen versuchen","Jonglieren oder Handstand üben"]},
+    {c:"Gesundheit",k:"gesundheit",i:"♥",t:"Obst oder Gemüse selbst zubereiten",d:"Wähle eine Portion aus und bereite sie heute selbst als Teil einer Mahlzeit oder eines Snacks zu.",e:["Obstteller schneiden","Gemüsesticks vorbereiten","Einen kleinen Salat machen"]},
+    {c:"Gesundheit",k:"gesundheit",i:"♥",t:"10 Minuten dehnen, turnen oder kräftigen",d:"Gib deinem Körper zehn bewusste Minuten Bewegung.",e:["10 Minuten Dehnen","Kniebeugen und Plank","Eine kleine Turnfolge"]},
+    {c:"Gesundheit",k:"gesundheit",i:"♥",t:"Etwas Aufgeschobenes erledigen",d:"Nimm dir heute genau eine Sache vor, die schon länger auf dich wartet.",e:["Eine Nachricht beantworten","Den Rucksack fertig packen","Eine kleine Reparatur angehen"]},
+    {c:"Gesundheit",k:"gesundheit",i:"♥",t:"10 Minuten richtig zur Ruhe kommen",d:"Mach zehn Minuten lang etwas, bei dem du merkst, dass dein Kopf ruhiger wird.",e:["In Ruhe zeichnen","Musik hören und nichts nebenbei tun","Draußen sitzen und beobachten"]},
+
+    {c:"Altruismus",k:"altruismus",i:"✦",t:"Jemandem eine kleine Freude schenken",d:"Schenke heute etwas Kleines, das zeigt: Ich habe an dich gedacht.",e:["Eine Karte oder Zeichnung","Etwas Kleines backen","Ein Lesezeichen basteln"]},
+    {c:"Altruismus",k:"altruismus",i:"✦",t:"Eine Aufgabe für jemand anderen übernehmen",d:"Mach heute eine kleine Aufgabe, damit eine andere Person weniger zu tun hat.",e:["Den Tisch decken","Etwas tragen helfen","Eine gemeinsame Ecke aufräumen"]},
+    {c:"Altruismus",k:"altruismus",i:"✦",t:"Ein ehrliches Kompliment machen",d:"Sag einer Person konkret, was du heute an ihr gut findest.",e:["Etwas über ihre Idee sagen","Eine Stärke benennen","Für etwas Gelungenes loben"]},
+    {c:"Altruismus",k:"altruismus",i:"✦",t:"Jemandem ausdrücklich danken",d:"Bedanke dich heute bewusst für etwas, das sonst leicht selbstverständlich wirkt.",e:["Für Hilfe danken","Fürs Zuhören danken","Für etwas Alltägliches danken"]},
+    {c:"Altruismus",k:"altruismus",i:"✦",t:"Jemanden zum Mitmachen einladen",d:"Achte auf jemanden, der vielleicht nicht von selbst dazukommt, und lade die Person ein.",e:["Bei einem Spiel","Beim gemeinsamen Essen","Bei einer Gruppenaktivität"]},
+    {c:"Altruismus",k:"altruismus",i:"✦",t:"Etwas teilen, das du gerne magst",d:"Teile heute bewusst etwas Schönes mit jemand anderem.",e:["Einen Snack teilen","Ein Buch oder Spiel ausleihen","Zeit für etwas Gemeinsames schenken"]},
+
+    {c:"Bildung",k:"bildung",i:"◇",t:"Fünf Wörter in einer Fremdsprache lernen",d:"Such dir fünf nützliche Wörter aus und versuche, sie heute wirklich zu behalten.",e:["Farben lernen","Begrüßungen lernen","5 Dinge im Zimmer benennen"]},
+    {c:"Bildung",k:"bildung",i:"◇",t:"Etwas im Alltag selbst ausrechnen",d:"Nutze Mathematik heute für eine echte Frage aus deinem Alltag.",e:["Preis oder Wechselgeld","Fahr- oder Gehzeit","Ein Rezept verdoppeln oder halbieren"]},
+    {c:"Bildung",k:"bildung",i:"◇",t:"10 Seiten in einem Buch lesen",d:"Lies heute zehn Seiten am Stück – Geschichte, Sachbuch oder etwas anderes, das dich interessiert.",e:["Eine Geschichte weiterlesen","Ein Sachbuch entdecken","Einen Comic bewusst lesen"]},
+    {c:"Bildung",k:"bildung",i:"◇",t:"Herausfinden, wie ein Alltagsgegenstand funktioniert",d:"Nimm einen gewöhnlichen Gegenstand und finde heraus, was im Inneren oder beim Benutzen eigentlich passiert.",e:["Reißverschluss","Kugelschreiber","Fahrradbremse"]},
+    {c:"Bildung",k:"bildung",i:"◇",t:"Etwas Neues lernen und erklären",d:"Lerne heute eine kleine Sache und erkläre sie danach einer anderen Person mit eigenen Worten.",e:["Einen neuen Knoten","Eine Spielregel","Einen überraschenden Fakt"]},
+    {c:"Bildung",k:"bildung",i:"◇",t:"Einen unbekannten Ort auf der Karte entdecken",d:"Such dir einen Ort, den du kaum kennst, und finde drei Dinge über ihn heraus.",e:["Welche Sprache spricht man dort?","Wie sieht die Landschaft aus?","Was ist dort besonders?"]},
+
+    {c:"Umwelt",k:"umwelt",i:"♧",t:"Genau eine kleine Zone aufräumen",d:"Bring heute einen überschaubaren Ort vollständig in Ordnung.",e:["Eine Schublade","Ein Rucksack oder eine Tasche","Ein Regalbrett"]},
+    {c:"Umwelt",k:"umwelt",i:"♧",t:"Drei Dinge zum Weitergeben finden",d:"Such drei Dinge, die du nicht mehr brauchst und die jemand anderes noch gut nutzen könnte.",e:["Ein Buch","Kleidung","Ein Spiel oder Spielzeug"]},
+    {c:"Umwelt",k:"umwelt",i:"♧",t:"Etwas reparieren oder wieder brauchbar machen",d:"Gib heute einer kleinen kaputten oder vernachlässigten Sache eine zweite Chance.",e:["Einen losen Knopf annähen","Ein Buch kleben","Etwas reinigen und wieder nutzen"]},
+    {c:"Umwelt",k:"umwelt",i:"♧",t:"Etwas Gebrauchtem einen neuen Zweck geben",d:"Verwende heute eine vorhandene Sache anders, statt für den Zweck etwas Neues zu nehmen.",e:["Glas als Stiftebecher","Karton als Sortierbox","Papierreste zum Basteln"]},
+    {c:"Umwelt",k:"umwelt",i:"♧",t:"Einer Pflanze besondere Pflege geben",d:"Kümmere dich heute bewusst um eine Pflanze – mehr als nur nebenbei.",e:["Welke Blätter entfernen","Blätter vorsichtig reinigen","Umtopfen oder etwas pflanzen"]},
+    {c:"Umwelt",k:"umwelt",i:"♧",t:"Draußen etwas in der Natur genauer entdecken",d:"Finde eine Pflanze, ein Tier oder ein Naturphänomen und schau genauer hin, was daran besonders ist.",e:["Ein Blatt bestimmen","Einen Vogel beobachten","Eine Wolkenform oder Spur untersuchen"]}
+  ];
+
+  var cube = document.getElementById("cube");
+  var rollBtn = document.getElementById("rollBtn");
+  var againBtn = document.getElementById("againBtn");
+  var doneBtn = document.getElementById("doneBtn");
+  var soundBtn = document.getElementById("soundBtn");
+  var placeholder = document.getElementById("placeholder");
+  var mission = document.getElementById("mission");
+  var soundOn = true;
+  var audioCtx = null;
+  var rolling = false;
+
+  var rotations = {
+    1:"rotateX(0deg) rotateY(0deg)",
+    2:"rotateX(-90deg) rotateY(0deg)",
+    3:"rotateX(0deg) rotateY(-90deg)",
+    4:"rotateX(0deg) rotateY(90deg)",
+    5:"rotateX(90deg) rotateY(0deg)",
+    6:"rotateX(0deg) rotateY(180deg)"
+  };
+
+  function ensureAudio(){
+    if(!soundOn) return;
+    if(!audioCtx){
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if(Ctx) audioCtx = new Ctx();
+    }
+    if(audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  }
+
+  function note(freq,start,duration,type,volume){
+    if(!audioCtx || !soundOn) return;
+    var o = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    o.type = type || "sine";
+    o.frequency.setValueAtTime(freq,start);
+    g.gain.setValueAtTime(0.0001,start);
+    g.gain.exponentialRampToValueAtTime(volume || 0.08,start + 0.018);
+    g.gain.exponentialRampToValueAtTime(0.0001,start + duration);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start(start);o.stop(start + duration + 0.02);
+  }
+
+  function rollSound(){
+    if(!audioCtx || !soundOn) return;
+    var now = audioCtx.currentTime;
+    for(var i=0;i<7;i++){
+      note(110 + Math.random()*80,now+i*.11,.07,"triangle",.035);
+    }
+  }
+
+  function fanfare(){
+    if(!audioCtx || !soundOn) return;
+    var now = audioCtx.currentTime;
+    note(523.25,now,.32,"triangle",.07);
+    note(659.25,now+.10,.32,"triangle",.07);
+    note(783.99,now+.20,.34,"triangle",.07);
+    note(1046.5,now+.31,.52,"triangle",.09);
+    note(523.25,now+.31,.52,"sine",.035);
+  }
+
+  function randomMission(){
+    var a = new Uint32Array(1);
+    if(window.crypto && window.crypto.getRandomValues){
+      window.crypto.getRandomValues(a);
+      return missions[a[0] % missions.length];
+    }
+    return missions[Math.floor(Math.random()*missions.length)];
+  }
+
+  function showMission(m){
+    var idx = missions.indexOf(m);
+    var number = idx % 6 + 1;
+    document.body.setAttribute("data-theme",m.k);
+    document.getElementById("catIcon").textContent = m.i;
+    document.getElementById("catName").textContent = m.c;
+    document.getElementById("missionNumber").textContent = number;
+    document.getElementById("missionTitle").textContent = m.t;
+    document.getElementById("missionText").textContent = m.d;
+    var box = document.getElementById("examples");
+    box.innerHTML = "";
+    m.e.forEach(function(x){
+      var s = document.createElement("span");
+      s.className = "example";
+      s.textContent = x;
+      box.appendChild(s);
+    });
+    placeholder.style.display = "none";
+    mission.classList.remove("show");
+    void mission.offsetWidth;
+    mission.classList.add("show");
+    fanfare();
+    if(navigator.vibrate) navigator.vibrate([35,30,70]);
+  }
+
+  function roll(){
+    if(rolling) return;
+    rolling = true;
+    ensureAudio();
+    rollSound();
+    rollBtn.disabled = true;
+    againBtn.disabled = true;
+    rollBtn.textContent = "Würfelt …";
+    mission.classList.remove("show");
+    var chosen = randomMission();
+    var idx = missions.indexOf(chosen);
+    var face = idx % 6 + 1;
+
+    cube.style.transition = "none";
+    cube.classList.remove("rolling");
+    void cube.offsetWidth;
+    cube.classList.add("rolling");
+
+    window.setTimeout(function(){
+      cube.classList.remove("rolling");
+      cube.style.transition = "transform .7s cubic-bezier(.2,.8,.2,1)";
+      cube.style.transform = rotations[face];
+      showMission(chosen);
+      rollBtn.disabled = false;
+      againBtn.disabled = false;
+      rollBtn.textContent = "Neu würfeln";
+      rolling = false;
+    },1280);
+  }
+
+  function confetti(){
+    var colors = ["#2f7d68","#a24e63","#4967a6","#58773c","#d7a84d","#e9c6a0"];
+    for(var i=0;i<42;i++){
+      var s = document.createElement("span");
+      s.className = "spark";
+      s.style.left = (Math.random()*100) + "vw";
+      s.style.top = (-5-Math.random()*18) + "vh";
+      s.style.background = colors[i % colors.length];
+      s.style.transform = "rotate(" + (Math.random()*180) + "deg)";
+      s.style.animationDelay = (Math.random()*.25) + "s";
+      s.style.animationDuration = (1.05+Math.random()*.85) + "s";
+      document.body.appendChild(s);
+      window.setTimeout(function(el){if(el.parentNode) el.parentNode.removeChild(el);},2200,s);
+    }
+    ensureAudio();
+    if(audioCtx && soundOn){
+      var n=audioCtx.currentTime;
+      note(783.99,n,.25,"sine",.06);
+      note(987.77,n+.08,.25,"sine",.06);
+      note(1174.66,n+.16,.42,"sine",.07);
+    }
+  }
+
+  soundBtn.addEventListener("click",function(){
+    soundOn = !soundOn;
+    soundBtn.textContent = soundOn ? "Ton an" : "Ton aus";
+    soundBtn.setAttribute("aria-pressed",soundOn ? "true" : "false");
+    if(soundOn) ensureAudio();
+  });
+  rollBtn.addEventListener("click",roll);
+  againBtn.addEventListener("click",roll);
+  doneBtn.addEventListener("click",confetti);
+})();
+</script>
+</body>
+</html>
