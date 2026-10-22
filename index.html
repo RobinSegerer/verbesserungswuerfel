@@ -72,6 +72,14 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
 .scoreboard{display:flex;gap:7px;flex-wrap:wrap}
 .score-chip{background:#fff;border:1px solid rgba(31,42,42,.08);border-radius:999px;padding:6px 9px;font-size:.78rem;font-weight:800;color:var(--muted)}
 .storage-note{width:100%;font-size:.72rem;color:var(--muted);margin-top:-2px}
+.sync-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
+.sync-btn,.sync-copy,.sync-leave{border:0;border-radius:12px;padding:9px 11px;font-weight:850;cursor:pointer}
+.sync-btn{background:#fff;color:var(--ink);border:1px solid rgba(31,42,42,.12)}
+.sync-copy{background:var(--accent);color:#fff;display:none}
+.sync-leave{background:transparent;color:var(--muted);display:none}
+.sync-status{font-size:.78rem;font-weight:800;color:var(--muted)}
+.sync-status.online{color:var(--accent)}
+.sync-status.error{color:#a24e63}
 
 .stage{
   position:relative;overflow:hidden;background:rgba(255,253,248,.84);border:1px solid rgba(255,255,255,.78);
@@ -196,7 +204,13 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
       <span class="current-score" id="currentScore">0 geschafft</span>
       <div class="scoreboard" id="scoreboard" aria-label="Fortschritt aller Personen"></div>
     </div>
-    <div class="storage-note">Fortschritt wird nur in diesem Browser auf diesem Gerät gespeichert.</div>
+    <div class="sync-tools">
+      <button class="sync-btn" id="syncBtn" type="button">↔ Geräte verbinden</button>
+      <button class="sync-copy" id="syncCopyBtn" type="button">Code kopieren</button>
+      <button class="sync-leave" id="syncLeaveBtn" type="button">Gruppe verlassen</button>
+      <span class="sync-status" id="syncStatus">Nur auf diesem Gerät</span>
+    </div>
+    <div class="storage-note" id="storageNote">Ohne gemeinsame Gruppe bleibt der Fortschritt nur in diesem Browser gespeichert.</div>
   </section>
 
   <main class="stage">
@@ -237,7 +251,7 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
     </div>
   </main>
 
-  <div class="footer">42 Missionen · 7 Bereiche · Fortschritt lokal gespeichert</div>
+  <div class="footer">42 Missionen · 7 Bereiche · lokal oder geräteübergreifend</div>
 </div>
 
 <script>
@@ -312,6 +326,16 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
   var currentScore = document.getElementById("currentScore");
   var scoreboard = document.getElementById("scoreboard");
   var progressKey = "verbesserungswuerfel_progress_v1";
+  var groupKey = "verbesserungswuerfel_group_code_v1";
+  var syncEndpoint = "https://bhsdujmqzjbygeldncgz.supabase.co/functions/v1/wuerfel-sync";
+  var publishableKey = "sb_publishable_Jre_iTYz_JgbMLZwc-uRFQ_OPA5gUKP";
+  var groupCode = localStorage.getItem(groupKey) || "";
+  var syncBtn = document.getElementById("syncBtn");
+  var syncCopyBtn = document.getElementById("syncCopyBtn");
+  var syncLeaveBtn = document.getElementById("syncLeaveBtn");
+  var syncStatus = document.getElementById("syncStatus");
+  var storageNote = document.getElementById("storageNote");
+  var syncBusy = false;
   var progress = loadProgress();
 
   var rotations = {
@@ -337,6 +361,141 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
 
   function saveProgress(){
     try{localStorage.setItem(progressKey,JSON.stringify(progress));}catch(e){}
+  }
+
+  function setSyncStatus(text,mode){
+    syncStatus.textContent=text;
+    syncStatus.className="sync-status"+(mode ? " "+mode : "");
+  }
+
+  function updateSyncUI(){
+    if(groupCode){
+      syncBtn.textContent="✓ Gemeinsam";
+      syncCopyBtn.style.display="";
+      syncLeaveBtn.style.display="";
+      setSyncStatus("Geräteübergreifend synchronisiert","online");
+      storageNote.textContent="Fortschritt wird in der gemeinsamen Gruppe gespeichert und auf verbundenen Geräten geladen.";
+    }else{
+      syncBtn.textContent="↔ Geräte verbinden";
+      syncCopyBtn.style.display="none";
+      syncLeaveBtn.style.display="none";
+      setSyncStatus("Nur auf diesem Gerät","");
+      storageNote.textContent="Ohne gemeinsame Gruppe bleibt der Fortschritt nur in diesem Browser gespeichert.";
+    }
+  }
+
+  async function syncRequest(action,payload,codeOverride){
+    var body=Object.assign({action:action},payload||{});
+    var code=(codeOverride===undefined ? groupCode : codeOverride);
+    if(code) body.code=code;
+    var response=await fetch(syncEndpoint,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":publishableKey},
+      body:JSON.stringify(body)
+    });
+    var data=await response.json().catch(function(){return {};});
+    if(!response.ok) throw new Error(data.error || "Synchronisation fehlgeschlagen");
+    return data;
+  }
+
+  function adoptRemoteState(data,preferredId){
+    var completions=Array.isArray(data.completions)?data.completions:[];
+    var players=(Array.isArray(data.players)?data.players:[]).map(function(p){
+      return {
+        id:p.id,
+        name:p.name,
+        done:completions.filter(function(c){return c.player_id===p.id;}).map(function(c){
+          return {mission:c.mission_id,at:c.completed_at};
+        })
+      };
+    });
+    if(!players.length) return;
+    progress.players=players;
+    progress.activeId=players.some(function(p){return p.id===preferredId;}) ? preferredId : players[0].id;
+    saveProgress();
+    renderProgress();
+  }
+
+  async function refreshShared(){
+    if(!groupCode || syncBusy) return;
+    syncBusy=true;
+    setSyncStatus("Synchronisiere …","");
+    try{
+      var data=await syncRequest("get_state");
+      adoptRemoteState(data,progress.activeId);
+      setSyncStatus("Geräteübergreifend synchronisiert","online");
+    }catch(e){
+      setSyncStatus("Offline – lokaler Stand bleibt erhalten","error");
+    }finally{
+      syncBusy=false;
+    }
+  }
+
+  async function createSharedGroup(){
+    if(syncBusy) return;
+    syncBusy=true;
+    setSyncStatus("Gruppe wird erstellt …","");
+    var oldActive=progress.activeId;
+    try{
+      var payload={
+        players:progress.players.map(function(p){
+          return {local_id:p.id,name:p.name,done:p.done||[]};
+        })
+      };
+      var data=await syncRequest("create_group",payload,"");
+      groupCode=data.code;
+      localStorage.setItem(groupKey,groupCode);
+      var preferred=(data.mapping && data.mapping[oldActive]) || null;
+      adoptRemoteState(data,preferred);
+      updateSyncUI();
+      try{await navigator.clipboard.writeText(groupCode);}catch(e){}
+      window.alert("Gemeinsame Gruppe erstellt.\n\nDer Gruppencode wurde – wenn möglich – kopiert:\n"+groupCode+"\n\nDiesen Code auf weiteren Geräten unter „Geräte verbinden“ eingeben.");
+    }catch(e){
+      window.alert("Die gemeinsame Gruppe konnte nicht erstellt werden: "+e.message);
+      updateSyncUI();
+    }finally{
+      syncBusy=false;
+    }
+  }
+
+  async function joinSharedGroup(){
+    var code=window.prompt("Gruppencode vom anderen Gerät eingeben:");
+    if(!code) return;
+    code=code.trim();
+    if(syncBusy) return;
+    syncBusy=true;
+    setSyncStatus("Gruppe wird geladen …","");
+    try{
+      var data=await syncRequest("get_state",{},code);
+      groupCode=code;
+      localStorage.setItem(groupKey,groupCode);
+      adoptRemoteState(data,null);
+      updateSyncUI();
+    }catch(e){
+      window.alert("Gruppe konnte nicht geöffnet werden: "+e.message);
+      updateSyncUI();
+    }finally{
+      syncBusy=false;
+    }
+  }
+
+  function connectDevices(){
+    if(groupCode){
+      try{navigator.clipboard.writeText(groupCode);}catch(e){}
+      window.alert("Diese App ist bereits mit einer gemeinsamen Gruppe verbunden.\n\nGruppencode:\n"+groupCode+"\n\nDen Code auf einem weiteren Gerät unter „Geräte verbinden“ eingeben.");
+      return;
+    }
+    var choice=window.prompt("Geräte verbinden:\n\n1 = Neue gemeinsame Gruppe erstellen\n2 = Bestehendem Gruppencode beitreten\n\nBitte 1 oder 2 eingeben:","1");
+    if(choice==="1") createSharedGroup();
+    if(choice==="2") joinSharedGroup();
+  }
+
+  function leaveSharedGroup(){
+    if(!groupCode) return;
+    if(!window.confirm("Gemeinsame Gruppe auf diesem Gerät verlassen? Der Online-Fortschritt wird nicht gelöscht.")) return;
+    groupCode="";
+    localStorage.removeItem(groupKey);
+    updateSyncUI();
   }
 
   function activePlayer(){
@@ -367,11 +526,20 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
     }
   }
 
-  function addPlayer(){
+  async function addPlayer(){
     var name=window.prompt("Name der Person:");
     if(!name) return;
     name=name.trim();
     if(!name) return;
+    if(groupCode){
+      try{
+        var data=await syncRequest("add_player",{name:name});
+        adoptRemoteState(data,progress.activeId);
+      }catch(e){
+        window.alert("Person konnte nicht synchronisiert werden: "+e.message);
+      }
+      return;
+    }
     var id="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
     progress.players.push({id:id,name:name.slice(0,30),done:[]});
     progress.activeId=id;
@@ -379,9 +547,24 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
     renderProgress();
   }
 
-  function markDone(){
+  async function markDone(){
     if(!currentMission || markedThisRoll[progress.activeId]) return;
     var p=activePlayer();
+    if(groupCode){
+      doneBtn.disabled=true;
+      doneBtn.textContent="Speichert …";
+      try{
+        var data=await syncRequest("complete",{player_id:p.id,mission_id:currentMission._id});
+        markedThisRoll[progress.activeId]=true;
+        adoptRemoteState(data,p.id);
+        confetti();
+      }catch(e){
+        doneBtn.disabled=false;
+        doneBtn.textContent="Geschafft";
+        window.alert("Konnte noch nicht synchronisieren: "+e.message);
+      }
+      return;
+    }
     p.done.push({mission:currentMission._id,at:new Date().toISOString()});
     markedThisRoll[progress.activeId]=true;
     saveProgress();
@@ -536,9 +719,24 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
     renderProgress();
   });
   addPlayerBtn.addEventListener("click",addPlayer);
+  syncBtn.addEventListener("click",connectDevices);
+  syncCopyBtn.addEventListener("click",function(){
+    if(!groupCode) return;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(groupCode).then(function(){
+        setSyncStatus("Code kopiert","online");
+        window.setTimeout(updateSyncUI,1400);
+      }).catch(function(){window.prompt("Gruppencode kopieren:",groupCode);});
+    }else{
+      window.prompt("Gruppencode kopieren:",groupCode);
+    }
+  });
+  syncLeaveBtn.addEventListener("click",leaveSharedGroup);
   renderProgress();
+  updateSyncUI();
+  if(groupCode) refreshShared();
 })();
 </script>
-<!-- deploy-refresh: 42-missions-progress-2026-10-22 -->
+<!-- deploy-refresh: supabase-sync-2026-10-22 -->
 </body>
 </html>
