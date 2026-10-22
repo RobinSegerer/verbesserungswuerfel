@@ -70,7 +70,13 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
 .progress-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .current-score{font-weight:900;color:var(--accent)}
 .scoreboard{display:flex;gap:7px;flex-wrap:wrap}
-.score-chip{background:#fff;border:1px solid rgba(31,42,42,.08);border-radius:999px;padding:6px 9px;font-size:.78rem;font-weight:800;color:var(--muted)}
+.score-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid rgba(31,42,42,.08);border-radius:999px;padding:4px 5px 4px 9px;font-size:.78rem;font-weight:800;color:var(--muted)}
+.score-label{white-space:nowrap}
+.score-add,.score-delete{border:0;border-radius:999px;width:26px;height:26px;display:grid;place-items:center;font-weight:900;cursor:pointer;line-height:1}
+.score-add{background:color-mix(in srgb,var(--accent) 12%,white);color:var(--accent)}
+.score-add:disabled{opacity:.35;cursor:default}
+.score-delete{background:transparent;color:#9a7777}
+.score-delete:hover{background:#fbefef;color:#9b3e4e}
 .storage-note{width:100%;font-size:.72rem;color:var(--muted);margin-top:-2px}
 .sync-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
 .sync-btn,.sync-copy,.sync-leave{border:0;border-radius:12px;padding:9px 11px;font-weight:850;cursor:pointer}
@@ -210,7 +216,7 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
       <button class="sync-leave" id="syncLeaveBtn" type="button">Gruppe verlassen</button>
       <span class="sync-status" id="syncStatus">Nur auf diesem Gerät</span>
     </div>
-    <div class="storage-note" id="storageNote">Ohne gemeinsame Gruppe bleibt der Fortschritt nur in diesem Browser gespeichert.</div>
+    <div class="storage-note" id="storageNote">Mit +1 kannst du die aktuelle Mission jeder Person gutschreiben – unabhängig davon, wer gerade würfelt.</div>
   </section>
 
   <main class="stage">
@@ -374,13 +380,13 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
       syncCopyBtn.style.display="";
       syncLeaveBtn.style.display="";
       setSyncStatus("Geräteübergreifend synchronisiert","online");
-      storageNote.textContent="Fortschritt wird in der gemeinsamen Gruppe gespeichert und auf verbundenen Geräten geladen.";
+      storageNote.textContent="Mit +1 kannst du die aktuelle Mission jeder Person gutschreiben. Änderungen werden auf verbundenen Geräten synchronisiert.";
     }else{
       syncBtn.textContent="↔ Geräte verbinden";
       syncCopyBtn.style.display="none";
       syncLeaveBtn.style.display="none";
       setSyncStatus("Nur auf diesem Gerät","");
-      storageNote.textContent="Ohne gemeinsame Gruppe bleibt der Fortschritt nur in diesem Browser gespeichert.";
+      storageNote.textContent="Mit +1 kannst du die aktuelle Mission jeder Person gutschreiben. Ohne gemeinsame Gruppe bleibt der Fortschritt nur in diesem Browser.";
     }
   }
 
@@ -517,7 +523,32 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
     progress.players.forEach(function(x){
       var s=document.createElement("span");
       s.className="score-chip";
-      s.textContent=x.name+" · "+x.done.length;
+
+      var label=document.createElement("span");
+      label.className="score-label";
+      label.textContent=x.name+" · "+x.done.length;
+      s.appendChild(label);
+
+      var add=document.createElement("button");
+      add.type="button";
+      add.className="score-add";
+      add.textContent="+1";
+      add.title=currentMission ? "Aktuelle Mission für "+x.name+" als geschafft zählen" : "Erst eine Mission würfeln";
+      add.setAttribute("aria-label",add.title);
+      add.disabled=!currentMission || !!markedThisRoll[x.id];
+      add.addEventListener("click",function(){awardMissionToPlayer(x.id);});
+      s.appendChild(add);
+
+      var del=document.createElement("button");
+      del.type="button";
+      del.className="score-delete";
+      del.textContent="×";
+      del.title=x.name+" löschen";
+      del.setAttribute("aria-label",del.title);
+      del.disabled=progress.players.length<=1;
+      del.addEventListener("click",function(){deletePlayer(x.id);});
+      s.appendChild(del);
+
       scoreboard.appendChild(s);
     });
     if(currentMission){
@@ -547,29 +578,65 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
     renderProgress();
   }
 
-  async function markDone(){
-    if(!currentMission || markedThisRoll[progress.activeId]) return;
-    var p=activePlayer();
+  async function awardMissionToPlayer(playerId){
+    if(!currentMission || markedThisRoll[playerId]) return;
+    var p=progress.players.find(function(x){return x.id===playerId;});
+    if(!p) return;
+
+    markedThisRoll[playerId]=true;
+    renderProgress();
+
     if(groupCode){
-      doneBtn.disabled=true;
-      doneBtn.textContent="Speichert …";
       try{
         var data=await syncRequest("complete",{player_id:p.id,mission_id:currentMission._id});
-        markedThisRoll[progress.activeId]=true;
-        adoptRemoteState(data,p.id);
+        adoptRemoteState(data,progress.activeId);
         confetti();
       }catch(e){
-        doneBtn.disabled=false;
-        doneBtn.textContent="Geschafft";
+        markedThisRoll[playerId]=false;
+        renderProgress();
         window.alert("Konnte noch nicht synchronisieren: "+e.message);
       }
       return;
     }
+
     p.done.push({mission:currentMission._id,at:new Date().toISOString()});
-    markedThisRoll[progress.activeId]=true;
     saveProgress();
     renderProgress();
     confetti();
+  }
+
+  async function deletePlayer(playerId){
+    if(progress.players.length<=1){
+      window.alert("Die letzte Person kann nicht gelöscht werden.");
+      return;
+    }
+    var p=progress.players.find(function(x){return x.id===playerId;});
+    if(!p) return;
+    if(!window.confirm(p.name+" wirklich löschen? Dabei wird auch der bisherige Fortschritt dieser Person gelöscht.")) return;
+
+    var wasActive=progress.activeId===playerId;
+
+    if(groupCode){
+      try{
+        var data=await syncRequest("delete_player",{player_id:playerId});
+        var preferred=wasActive ? null : progress.activeId;
+        adoptRemoteState(data,preferred);
+      }catch(e){
+        window.alert("Person konnte nicht gelöscht werden: "+e.message);
+      }
+      return;
+    }
+
+    progress.players=progress.players.filter(function(x){return x.id!==playerId;});
+    if(wasActive) progress.activeId=progress.players[0].id;
+    delete markedThisRoll[playerId];
+    saveProgress();
+    renderProgress();
+  }
+
+  async function markDone(){
+    if(!currentMission) return;
+    await awardMissionToPlayer(progress.activeId);
   }
 
   function ensureAudio(){
@@ -737,6 +804,6 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
   if(groupCode) refreshShared();
 })();
 </script>
-<!-- deploy-refresh: supabase-sync-2026-10-22 -->
+<!-- deploy-refresh: player-delete-and-direct-points-2026-10-22 -->
 </body>
 </html>
