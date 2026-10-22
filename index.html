@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f7f2e8">
 <title>Verbesserungswürfel</title>
-<meta name="description" content="24 kleine Tagesmissionen für Gesundheit, Altruismus, Bildung und Umwelt.">
+<meta name="description" content="42 kleine Tagesmissionen in sieben Bereichen – mit lokalem Fortschritt für mehrere Personen.">
 <style>
 :root{
   --ink:#1f2a2a;
@@ -34,6 +34,9 @@ body[data-theme="gesundheit"]{--accent:#2f7d68;--accent2:#d1a84b;--bg:#eef7f1}
 body[data-theme="altruismus"]{--accent:#a24e63;--accent2:#d99a55;--bg:#fbf0f2}
 body[data-theme="bildung"]{--accent:#4967a6;--accent2:#d2a23f;--bg:#eff3fb}
 body[data-theme="umwelt"]{--accent:#58773c;--accent2:#bb8a45;--bg:#f1f5e8}
+body[data-theme="selbstfuersorge"]{--accent:#8b5f9b;--accent2:#d09a67;--bg:#f7f0f8}
+body[data-theme="kreativitaet"]{--accent:#b7653f;--accent2:#d7a84d;--bg:#fbf1ea}
+body[data-theme="mut"]{--accent:#397486;--accent2:#d0a24f;--bg:#edf6f7}
 button{font:inherit}
 .app{width:min(980px,100%);margin:0 auto;padding:28px 20px 42px}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
@@ -53,7 +56,22 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
 .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin:22px 0 6px}
 .pill{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.68);border:1px solid rgba(31,42,42,.08);border-radius:999px;padding:7px 11px;font-size:.84rem;font-weight:750}
 .dot{width:9px;height:9px;border-radius:50%}
-.dot.g{background:#2f7d68}.dot.a{background:#a24e63}.dot.b{background:#4967a6}.dot.u{background:#58773c}
+.dot.g{background:#2f7d68}.dot.a{background:#a24e63}.dot.b{background:#4967a6}.dot.u{background:#58773c}.dot.s{background:#8b5f9b}.dot.k{background:#b7653f}.dot.m{background:#397486}
+
+.progress-panel{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  margin:6px 0 18px;padding:14px 16px;background:rgba(255,255,255,.62);
+  border:1px solid rgba(31,42,42,.08);border-radius:20px
+}
+.player-controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.player-controls label{font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.player-select{appearance:none;border:1px solid rgba(31,42,42,.12);background:#fff;color:var(--ink);border-radius:12px;padding:10px 34px 10px 12px;font-weight:800;cursor:pointer}
+.add-player{border:0;background:var(--ink);color:#fff;border-radius:12px;padding:10px 12px;font-weight:850;cursor:pointer}
+.progress-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.current-score{font-weight:900;color:var(--accent)}
+.scoreboard{display:flex;gap:7px;flex-wrap:wrap}
+.score-chip{background:#fff;border:1px solid rgba(31,42,42,.08);border-radius:999px;padding:6px 9px;font-size:.78rem;font-weight:800;color:var(--muted)}
+.storage-note{width:100%;font-size:.72rem;color:var(--muted);margin-top:-2px}
 
 .stage{
   position:relative;overflow:hidden;background:rgba(255,253,248,.84);border:1px solid rgba(255,255,255,.78);
@@ -156,14 +174,30 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
   <header class="hero">
     <div class="kicker">Eine kleine Mission für heute</div>
     <h1>Würfeln, lachen,<br>die Welt ein bisschen besser machen.</h1>
-    <p class="lead">24 positive Tagesmissionen für Gesundheit, Altruismus, Bildung und Umwelt – konkret, machbar und für Kinder wie Erwachsene.</p>
-    <div class="legend" aria-label="Vier Bereiche">
+    <p class="lead">42 positive Tagesmissionen in sieben Bereichen – konkret, machbar und für Kinder wie Erwachsene.</p>
+    <div class="legend" aria-label="Sieben Bereiche">
       <span class="pill"><span class="dot g"></span>Gesundheit</span>
       <span class="pill"><span class="dot a"></span>Altruismus</span>
       <span class="pill"><span class="dot b"></span>Bildung</span>
       <span class="pill"><span class="dot u"></span>Umwelt</span>
+      <span class="pill"><span class="dot s"></span>Selbstfürsorge &amp; Genuss</span>
+      <span class="pill"><span class="dot k"></span>Kreativität</span>
+      <span class="pill"><span class="dot m"></span>Mut &amp; Selbstwirksamkeit</span>
     </div>
   </header>
+
+  <section class="progress-panel" aria-label="Persönlicher Fortschritt">
+    <div class="player-controls">
+      <label for="playerSelect">Wer würfelt?</label>
+      <select class="player-select" id="playerSelect" aria-label="Person auswählen"></select>
+      <button class="add-player" id="addPlayerBtn" type="button">+ Person</button>
+    </div>
+    <div class="progress-right">
+      <span class="current-score" id="currentScore">0 geschafft</span>
+      <div class="scoreboard" id="scoreboard" aria-label="Fortschritt aller Personen"></div>
+    </div>
+    <div class="storage-note">Fortschritt wird nur in diesem Browser auf diesem Gerät gespeichert.</div>
+  </section>
 
   <main class="stage">
     <div class="grid">
@@ -179,14 +213,14 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
           </div>
         </div>
         <button class="roll" id="rollBtn" type="button">Mission würfeln</button>
-        <div class="hint">Jede der 24 Missionen hat die gleiche Chance.</div>
+        <div class="hint">Jede der 42 Missionen hat die gleiche Chance.</div>
       </section>
 
       <section class="result" aria-live="polite">
         <div class="placeholder" id="placeholder">
           <div class="eyebrow">Bereit?</div>
           <h2>Der Würfel entscheidet.</h2>
-          <p>Ein Klick wählt zufällig eine der 24 Missionen. Die Würfelzahl zeigt die Aufgabe innerhalb ihres Bereichs.</p>
+          <p>Ein Klick wählt zufällig eine der 42 Missionen. Die Würfelzahl zeigt die Aufgabe innerhalb ihres Bereichs.</p>
         </div>
         <article class="mission" id="mission">
           <div class="badge"><span id="catIcon">●</span><span id="catName"></span><span class="number" id="missionNumber"></span></div>
@@ -203,7 +237,7 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
     </div>
   </main>
 
-  <div class="footer">24 Missionen · 4 Bereiche · 1 kleiner Schritt</div>
+  <div class="footer">42 Missionen · 7 Bereiche · Fortschritt lokal gespeichert</div>
 </div>
 
 <script>
@@ -238,6 +272,27 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
     {c:"Umwelt",k:"umwelt",i:"♧",t:"Etwas Gebrauchtem einen neuen Zweck geben",d:"Verwende heute eine vorhandene Sache anders, statt für den Zweck etwas Neues zu nehmen.",e:["Glas als Stiftebecher","Karton als Sortierbox","Papierreste zum Basteln"]},
     {c:"Umwelt",k:"umwelt",i:"♧",t:"Einer Pflanze besondere Pflege geben",d:"Kümmere dich heute bewusst um eine Pflanze – mehr als nur nebenbei.",e:["Welke Blätter entfernen","Blätter vorsichtig reinigen","Umtopfen oder etwas pflanzen"]},
     {c:"Umwelt",k:"umwelt",i:"♧",t:"Draußen etwas in der Natur genauer entdecken",d:"Finde eine Pflanze, ein Tier oder ein Naturphänomen und schau genauer hin, was daran besonders ist.",e:["Ein Blatt bestimmen","Einen Vogel beobachten","Eine Wolkenform oder Spur untersuchen"]}
+,
+    {c:"Selbstfürsorge & Genuss",k:"selbstfuersorge",i:"☼",t:"Ein Lieblingsgetränk ganz bewusst genießen",d:"Trink heute etwas, das du besonders magst, langsam und ohne Bildschirm oder andere Ablenkung.",e:["Kakao ganz langsam trinken","Tee bewusst riechen und schmecken","Ein Glas Saft ohne Nebenbei genießen"]},
+    {c:"Selbstfürsorge & Genuss",k:"selbstfuersorge",i:"☼",t:"Heute freundlich Nein sagen",d:"Sag zu einer kleinen Anfrage Nein, wenn dir dafür heute Zeit, Kraft oder Lust fehlt – ohne lange Rechtfertigung.",e:["Eine zusätzliche Aufgabe ablehnen","Bei einer Aktivität einmal aussetzen","Sagen: Heute passt es für mich nicht"]},
+    {c:"Selbstfürsorge & Genuss",k:"selbstfuersorge",i:"☼",t:"Etwas anziehen, in dem du dich richtig wohlfühlst",d:"Wähle heute bewusst Kleidung, die sich gut anfühlt oder in der du dich besonders gerne magst.",e:["Das weichste Kleidungsstück","Eine Lieblingsfarbe","Eine Kombination, in der du dich stark fühlst"]},
+    {c:"Selbstfürsorge & Genuss",k:"selbstfuersorge",i:"☼",t:"10 Minuten Lieblingsmusik genießen",d:"Hör heute zehn Minuten nur deiner Lieblingsmusik zu – oder singe und tanze dazu.",e:["Kopfhörer auf und nur zuhören","Ein Lied laut mitsingen","Zu zwei Liedern tanzen"]},
+    {c:"Selbstfürsorge & Genuss",k:"selbstfuersorge",i:"☼",t:"Drei Dinge finden, auf die du dich freust",d:"Schreib oder erzähl drei konkrete Dinge, auf die du dich in den nächsten Tagen freust.",e:["Ein Treffen","Etwas Leckeres","Ein Spiel, Ausflug oder Hobby"]},
+    {c:"Selbstfürsorge & Genuss",k:"selbstfuersorge",i:"☼",t:"Etwas nur aus Freude tun",d:"Mach heute eine kleine Sache nicht weil du musst oder etwas erreichen willst, sondern einfach weil sie dir Freude macht.",e:["Schaukeln","Ein Lieblingslied hören","Etwas Lustiges zeichnen"]},
+
+    {c:"Kreativität",k:"kreativitaet",i:"✎",t:"10 Minuten frei kritzeln oder malen",d:"Beginne ohne Plan und schau erst am Ende, was auf dem Papier entstanden ist.",e:["Nur Linien und Formen","Mit der ungewohnten Hand zeichnen","Aus einem Klecks etwas machen"]},
+    {c:"Kreativität",k:"kreativitaet",i:"✎",t:"Drei Dinge aus ungewohnter Perspektive zeigen",d:"Fotografiere oder zeichne drei ganz gewöhnliche Dinge so, wie man sie normalerweise nicht sieht.",e:["Ganz nah herangehen","Von unten schauen","Nur einen Ausschnitt zeigen"]},
+    {c:"Kreativität",k:"kreativitaet",i:"✎",t:"Eine neue Kleidungskombination ausprobieren",d:"Stell aus vorhandenen Sachen eine Kombination zusammen, die du so noch nie getragen hast.",e:["Zwei ungewohnte Farben","Schick und sportlich mischen","Ein Teil anders kombinieren"]},
+    {c:"Kreativität",k:"kreativitaet",i:"✎",t:"Eine eigene kleine Melodie erfinden",d:"Summ, pfeif oder klopf eine kurze Melodie, die es vorher noch nicht gab.",e:["Vier Töne summen","Einen Rhythmus klopfen","Zu Musik eine Gegenmelodie erfinden"]},
+    {c:"Kreativität",k:"kreativitaet",i:"✎",t:"Aus Naturmaterialien ein Muster legen",d:"Gestalte draußen aus Dingen, die du lose findest, ein kleines Muster oder Kunstwerk.",e:["Steine im Kreis","Blätter nach Farben","Stöcke als geometrische Form"]},
+    {c:"Kreativität",k:"kreativitaet",i:"✎",t:"Einen lustigen Zweizeiler erfinden",d:"Such dir einen ganz normalen Gegenstand und mach daraus einen kleinen Reim oder Zweizeiler.",e:["Über einen Löffel","Über einen Schuh","Über einen Regenschirm"]},
+
+    {c:"Mut & Selbstwirksamkeit",k:"mut",i:"▲",t:"Etwas tun, obwohl ein Fehler passieren könnte",d:"Probier heute bewusst etwas aus, das du noch nicht sicher kannst.",e:["Ein paar Wörter fremdsprachig sagen","Eine neue Technik ausprobieren","Etwas vor anderen versuchen"]},
+    {c:"Mut & Selbstwirksamkeit",k:"mut",i:"▲",t:"Eine andere Meinung freundlich aussprechen",d:"Wenn du etwas anders siehst als andere, sag heute einmal ruhig und respektvoll, was du denkst.",e:["Bei einer Gruppenentscheidung","Über einen Film oder ein Spiel","Bei einer gemeinsamen Planung"]},
+    {c:"Mut & Selbstwirksamkeit",k:"mut",i:"▲",t:"Etwas ansprechen, das dich stört",d:"Sprich heute eine kleine unangenehme oder unfaire Situation freundlich, aber klar an.",e:["Wenn jemand vordrängelt","Wenn etwas zu laut ist","Wenn eine Absprache nicht eingehalten wird"]},
+    {c:"Mut & Selbstwirksamkeit",k:"mut",i:"▲",t:"Ehrlich sagen: Das weiß ich nicht",d:"Wenn du etwas nicht weißt, sag es offen, statt so zu tun, als wüsstest du es.",e:["In einem Gespräch","Bei einer Aufgabe","Wenn dich jemand etwas fragt"]},
+    {c:"Mut & Selbstwirksamkeit",k:"mut",i:"▲",t:"Eine fremde Person etwas Einfaches fragen",d:"Stell heute einer Person, die du noch nicht kennst, eine unkomplizierte freundliche Frage.",e:["Nach dem Weg fragen","Nach einer Empfehlung fragen","Fragen, ob ein Platz frei ist"]},
+    {c:"Mut & Selbstwirksamkeit",k:"mut",i:"▲",t:"Dich einer kleinen sicheren Angst stellen",d:"Wähle etwas, das dich ein wenig Überwindung kostet, aber sicher ist, und geh einen kleinen Schritt darauf zu.",e:["Eine kleine Spinne selbst hinausbringen","Etwas vor einer Gruppe zeigen","Eine neue Aktivität ausprobieren"]}
   ];
 
   var cube = document.getElementById("cube");
@@ -250,6 +305,14 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
   var soundOn = true;
   var audioCtx = null;
   var rolling = false;
+  var currentMission = null;
+  var markedThisRoll = {};
+  var playerSelect = document.getElementById("playerSelect");
+  var addPlayerBtn = document.getElementById("addPlayerBtn");
+  var currentScore = document.getElementById("currentScore");
+  var scoreboard = document.getElementById("scoreboard");
+  var progressKey = "verbesserungswuerfel_progress_v1";
+  var progress = loadProgress();
 
   var rotations = {
     1:"rotateX(0deg) rotateY(0deg)",
@@ -259,6 +322,72 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
     5:"rotateX(90deg) rotateY(0deg)",
     6:"rotateX(0deg) rotateY(180deg)"
   };
+
+  function loadProgress(){
+    try{
+      var saved = JSON.parse(localStorage.getItem(progressKey) || "null");
+      if(saved && Array.isArray(saved.players) && saved.players.length){
+        saved.players.forEach(function(p){if(!Array.isArray(p.done)) p.done=[];});
+        if(!saved.activeId || !saved.players.some(function(p){return p.id===saved.activeId;})) saved.activeId=saved.players[0].id;
+        return saved;
+      }
+    }catch(e){}
+    return {players:[{id:"ich",name:"Ich",done:[]}],activeId:"ich"};
+  }
+
+  function saveProgress(){
+    try{localStorage.setItem(progressKey,JSON.stringify(progress));}catch(e){}
+  }
+
+  function activePlayer(){
+    return progress.players.find(function(p){return p.id===progress.activeId;}) || progress.players[0];
+  }
+
+  function renderProgress(){
+    playerSelect.innerHTML="";
+    progress.players.forEach(function(p){
+      var o=document.createElement("option");
+      o.value=p.id;
+      o.textContent=p.name;
+      if(p.id===progress.activeId) o.selected=true;
+      playerSelect.appendChild(o);
+    });
+    var p=activePlayer();
+    currentScore.textContent=p.done.length+" geschafft";
+    scoreboard.innerHTML="";
+    progress.players.forEach(function(x){
+      var s=document.createElement("span");
+      s.className="score-chip";
+      s.textContent=x.name+" · "+x.done.length;
+      scoreboard.appendChild(s);
+    });
+    if(currentMission){
+      doneBtn.disabled=!!markedThisRoll[progress.activeId];
+      doneBtn.textContent=doneBtn.disabled ? "✓ Gezählt" : "Geschafft";
+    }
+  }
+
+  function addPlayer(){
+    var name=window.prompt("Name der Person:");
+    if(!name) return;
+    name=name.trim();
+    if(!name) return;
+    var id="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    progress.players.push({id:id,name:name.slice(0,30),done:[]});
+    progress.activeId=id;
+    saveProgress();
+    renderProgress();
+  }
+
+  function markDone(){
+    if(!currentMission || markedThisRoll[progress.activeId]) return;
+    var p=activePlayer();
+    p.done.push({mission:currentMission._id,at:new Date().toISOString()});
+    markedThisRoll[progress.activeId]=true;
+    saveProgress();
+    renderProgress();
+    confetti();
+  }
 
   function ensureAudio(){
     if(!soundOn) return;
@@ -312,6 +441,8 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
   function showMission(m){
     var idx = missions.indexOf(m);
     var number = idx % 6 + 1;
+    m._id = m.k + "-" + number;
+    currentMission = m;
     document.body.setAttribute("data-theme",m.k);
     document.getElementById("catIcon").textContent = m.i;
     document.getElementById("catName").textContent = m.c;
@@ -326,6 +457,9 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
       s.textContent = x;
       box.appendChild(s);
     });
+    markedThisRoll = {};
+    doneBtn.disabled = false;
+    doneBtn.textContent = "Geschafft";
     placeholder.style.display = "none";
     mission.classList.remove("show");
     void mission.offsetWidth;
@@ -395,9 +529,16 @@ h1{font-size:clamp(2.25rem,7vw,4.6rem);line-height:.94;margin:.28em 0 .18em;lett
   });
   rollBtn.addEventListener("click",roll);
   againBtn.addEventListener("click",roll);
-  doneBtn.addEventListener("click",confetti);
+  doneBtn.addEventListener("click",markDone);
+  playerSelect.addEventListener("change",function(){
+    progress.activeId=playerSelect.value;
+    saveProgress();
+    renderProgress();
+  });
+  addPlayerBtn.addEventListener("click",addPlayer);
+  renderProgress();
 })();
 </script>
-<!-- deploy-refresh: gh-pages-2026-10-21 -->
+<!-- deploy-refresh: 42-missions-progress-2026-10-22 -->
 </body>
 </html>
